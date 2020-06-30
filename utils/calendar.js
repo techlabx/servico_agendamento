@@ -5,8 +5,6 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CREDENCIAIS = leCredenciais('credentials.json');
 const cache = {};
 
-console.log(CREDENCIAIS);
-
 function leCredenciais(filePath) {
     try {
         let credentials = fs.readFileSync(filePath);
