@@ -1,13 +1,7 @@
 const express = require('express');
-const queries = require('../db/queries');
 const calendar = require('../utils/calendar');
-const { response } = require('express');
 
 const router = express.Router();
-
-cache.on("error", function (error) {
-    console.error(error);
-});
 
 router.post('/token/:instituto', async (req, res) => {
     try {

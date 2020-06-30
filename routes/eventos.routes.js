@@ -1,6 +1,5 @@
 const express = require('express');
 const calendar = require('../utils/calendar');
-const queries = require('../db/queries');
 
 const router = express.Router();
 

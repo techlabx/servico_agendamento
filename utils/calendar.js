@@ -1,5 +1,5 @@
-const {google} = require('googleapis');
 const fs = require('fs');
+const {google} = require('googleapis');
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CREDENCIAIS = leCredenciais('credentials.json');
@@ -120,7 +120,7 @@ async function atualizaEvento(instituto, evento, emailUsuario) {
                 "summary": "Agendado",
             }
         });
-        return true;
+        return response;
     }
     catch (err) {
         console.error(err);
