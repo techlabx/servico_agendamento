@@ -2,23 +2,21 @@ const knex = require('./knex'); // Conexão
 
 module.exports = {
 
-    // --------------------------------------------------------- Institutos
-
-    // SELECT * FROM instituto;
-    getAllInstit(){
-        return knex('instituto');
+    // --------------------------------------------------------- Token
+    async createTokenInfo(tokenInfo) {
+        return await knex('token').insert(tokenInfo, '*');
     },
 
+    async getTokenInfo(instituto) {
+        return await knex('token').where('institutoToken', instituto); 
+    },
 
-    // --------------------------------------------------------- Atendentes
+    async updateTokenInfo(instituto, tokenInfo) {
+        return await knex('token').where('instituto', instituto).update(tokenInfo, '*');
+    },
 
-    // Seleciona o atendente responsável pelo instituto cuja sigla foi passada
-    //na rota
-    getAtendInstit(instituto){
-        return knex('instituto').join('atendente', 'instituto.atendenteresp',
-                    'atendente.emailatendente').select('atendente.nomeatendente',
-                    'atendente.emailatendente', 'atendente.linkagenda')
-                    .where('instituto.siglainstituto', instituto);
+    async deleteTokenInfo(instituto) {
+        return await knex('token').where('instituto', instituto).del();
     }
 
 }
