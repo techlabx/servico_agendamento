@@ -2,14 +2,15 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const eventos = require('./routes/eventos.routes');
+const token = require('./routes/token.routes');
 
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/', teste);
-async function teste(req, res) {
-    res.status(200).send("servico de agendamento UP");
-}
+app.use('/', eventos);
+app.use('/', token)
+
 
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';

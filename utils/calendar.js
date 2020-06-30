@@ -1,14 +1,16 @@
 const {google} = require('googleapis');
 const fs = require('fs');
-const queries = require('../db/queries');
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CREDENCIAIS = leCredenciais('credentials.json');
+const cache = {};
+
+console.log(CREDENCIAIS);
 
 function leCredenciais(filePath) {
     try {
-        let content = fs.readFile(filePath);
-        return JSON.parse(content);
+        let credentials = fs.readFileSync(filePath);
+        return JSON.parse(credentials);
     }
     catch (err) {
         console.log(err);
@@ -19,8 +21,8 @@ function leCredenciais(filePath) {
 // Isso aqui vai ser substituido por uma query ao bd
 function leToken(instituto) {
     try {
-        let content = fs.readFile(`token_${instituto}.json`);
-        return JSON.parse(content);
+        let token = fs.readFileSync(`token_${instituto}.json`);
+        return JSON.parse(token);
     }
     catch (err) {
         console.log(err);
@@ -38,42 +40,55 @@ async function criaClienteAutenticado(instituto) {
     if (Object.entries(tokenAtendente).length == 0) {
         throw new Error("Atendente nao autorizou acesso para agenda");
     }
-    oAuth2Client.setCredentials(token);
+    oAuth2Client.setCredentials(tokenAtendente);
     return oAuth2Client;
 }
 
-async function solicitaCriacaoToken(oAuth2Client, instituto) {
-    let authUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: SCOPES
-    });
-    return {
-        instituto: instituto,
-        link: authUrl
-    };
-}
-
-async function confirmaCriacaoToken(oAuth2Client, instituto, codigo) {
-    oAuth2Client.getToken(codigo, (err, token) => {
-        // o conteudo desse callback deve ser substituido por uma insercao no bd
-        let tokenPath = `token_${instituto}.json`;
-        fs.writeFile(tokenPath, JSON.stringify(token), (err) => {
-            if (err) return console.error(err);
-            console.log("Token armazenado em", tokenPath);
-        });
-    });
-}
-
-async function listaEventosDisponiveis(oAuth2Client) {
+async function solicitaCriacaoToken(instituto) {
     try {
-        let calendar = google.calendar({version: 'v3', oAuth2Client});
-        let eventos = await calendar.events.list({
+        let {client_secret, client_id, redirect_uris} = CREDENCIAIS.installed;
+        let oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+        let authUrl = oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: SCOPES
+        });
+        cache[instituto] = oAuth2Client;
+        return authUrl;
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
+async function confirmaCriacaoToken(instituto, codigo) {
+    try{
+        oAuth2Client = cache[instituto];
+        oAuth2Client.getToken(codigo, (err, token) => {
+            // o conteudo desse callback deve ser substituido por uma insercao no bd
+            let tokenPath = `token_${instituto}.json`;
+            fs.writeFile(tokenPath, JSON.stringify(token), (err) => {
+                if (err) return console.error(err);
+                console.log("Token armazenado em", tokenPath);
+            });
+        });
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
+async function listaEventosDisponiveis(instituto) {
+    try {
+        let oAuth2Client = await criaClienteAutenticado(instituto);
+        let calendar = google.calendar({version: 'v3', auth: oAuth2Client});
+        let res = await calendar.events.list({
             calendarId: 'primary',
             timeMin: (new Date()).toISOString(),
             singleEvents: true,
             orderBy: 'startTime'
         });
         let eventosDisponiveis = [];
+        let eventos = res.data.items;
         eventos.forEach(evento => {
             if (evento.summary == 'Livre') {
                 eventosDisponiveis.push(evento);
@@ -87,12 +102,13 @@ async function listaEventosDisponiveis(oAuth2Client) {
     }
 }
 
-async function atualizaEvento(oAuth2Client, evento, emailUsuario) {
+async function atualizaEvento(instituto, evento, emailUsuario) {
     try {
+        let oAuth2Client = await criaClienteAutenticado(instituto);
         // Seta convite para o usuario
-        let newAttendees = evento.attendees;
+        let newAttendees = []
         newAttendees.push({email: emailUsuario});
-        let calendar = google.calendar({version: 'v3', oAuth2Client});
+        let calendar = google.calendar({version: 'v3', auth: oAuth2Client});
         let response = await calendar.events.update({
             calendarId: 'primary',
             eventId: evento.id,
@@ -104,11 +120,18 @@ async function atualizaEvento(oAuth2Client, evento, emailUsuario) {
                 "summary": "Agendado",
             }
         });
-        console.log(response);
         return true;
     }
     catch (err) {
         console.error(err);
         return false;
     }
+}
+
+module.exports = {
+    criaClienteAutenticado,
+    solicitaCriacaoToken,
+    confirmaCriacaoToken,
+    listaEventosDisponiveis,
+    atualizaEvento
 }
