@@ -17,8 +17,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
-app.use('/', eventos);
-app.use('/', token)
+app.use('/acolhimento', eventos);
+app.use('/acolhimento', token);
 
 
 const PORT = process.env.PORT || 8080;
