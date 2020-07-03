@@ -25,4 +25,6 @@ router.put('/token/:instituto', async (req, res) => {
     }
 });
 
+// precisa de delete
+
 module.exports = router;

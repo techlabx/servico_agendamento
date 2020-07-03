@@ -1,22 +1,24 @@
 const knex = require('./knex'); // Conexão
 
+async function createTokenInfo(tokenInfo) {
+    return await knex('token').insert(tokenInfo, '*');
+}
+
+async function getTokenInfo(instituto) {
+    return await knex('token').where('institutotoken', instituto).first(); 
+}
+
+async function updateTokenInfo(instituto, tokenInfo) {
+    return await knex('token').where('institutotoken', instituto).update(tokenInfo, '*');
+}
+
+async function deleteTokenInfo(instituto) {
+    return await knex('token').where('institutotoken', instituto).del();
+}
+
 module.exports = {
-
-    // --------------------------------------------------------- Token
-    async createTokenInfo(tokenInfo) {
-        return await knex('token').insert(tokenInfo, '*');
-    },
-
-    async getTokenInfo(instituto) {
-        return await knex('token').where('institutoToken', instituto); 
-    },
-
-    async updateTokenInfo(instituto, tokenInfo) {
-        return await knex('token').where('instituto', instituto).update(tokenInfo, '*');
-    },
-
-    async deleteTokenInfo(instituto) {
-        return await knex('token').where('instituto', instituto).del();
-    }
-
+    createTokenInfo,
+    getTokenInfo,
+    updateTokenInfo,
+    deleteTokenInfo
 }

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const {google} = require('googleapis');
+const queries = require('../db/queries')
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CREDENCIAIS = leCredenciais('credentials.json');
@@ -31,14 +32,15 @@ function leToken(instituto) {
 async function criaClienteAutenticado(instituto) {
     let {client_secret, client_id, redirect_uris} = CREDENCIAIS.installed;
     let oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-    // As duas linhas abaixo devem substituir a linha seguinte quando a alteracao no BD acontecer
-    // let infoAtendente = await queries.getAtendInstit(instituto);
-    // let tokenAtendente = infoAtendente.token;
-    let tokenAtendente = leToken(instituto);
-    if (Object.entries(tokenAtendente).length == 0) {
+    let token = await queries.getTokenInfo(instituto);
+    console.log(token);
+    if (token.access_token === null) {
         throw new Error("Atendente nao autorizou acesso para agenda");
     }
-    oAuth2Client.setCredentials(tokenAtendente);
+    delete token["idtoken"];
+    delete token["institutotoken"];
+    delete token["linkagenda"];
+    oAuth2Client.setCredentials(token);
     return oAuth2Client;
 }
 
@@ -61,13 +63,15 @@ async function solicitaCriacaoToken(instituto) {
 async function confirmaCriacaoToken(instituto, codigo) {
     try{
         oAuth2Client = cache[instituto];
-        oAuth2Client.getToken(codigo, (err, token) => {
-            // o conteudo desse callback deve ser substituido por uma insercao no bd
-            let tokenPath = `token_${instituto}.json`;
-            fs.writeFile(tokenPath, JSON.stringify(token), (err) => {
-                if (err) return console.error(err);
-                console.log("Token armazenado em", tokenPath);
-            });
+        oAuth2Client.getToken(codigo, async (err, token) => {
+            console.log(token)
+            let tokenInfo = await queries.getTokenInfo(instituto);
+            tokenInfo.access_token = token.access_token,
+            tokenInfo.refresh_token = token.refresh_token,
+            tokenInfo.scope = token.scope,
+            tokenInfo.token_type = token.token_type,
+            tokenInfo.expiry_date = token.expiry_date
+            await queries.updateTokenInfo(instituto, tokenInfo);
         });
     }
     catch (err) {
@@ -79,6 +83,8 @@ async function listaEventosDisponiveis(instituto) {
     try {
         let oAuth2Client = await criaClienteAutenticado(instituto);
         let calendar = google.calendar({version: 'v3', auth: oAuth2Client});
+        let calId = await queries.getTokenInfo(instituto);
+        calId = calId.linkagenda;
         let res = await calendar.events.list({
             calendarId: 'primary',
             timeMin: (new Date()).toISOString(),
@@ -107,6 +113,7 @@ async function atualizaEvento(instituto, evento, emailUsuario) {
         let newAttendees = []
         newAttendees.push({email: emailUsuario});
         let calendar = google.calendar({version: 'v3', auth: oAuth2Client});
+        let calId = await queries.getTokenInfo(instituto).linkagenda;
         let response = await calendar.events.update({
             calendarId: 'primary',
             eventId: evento.id,
