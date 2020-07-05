@@ -73,6 +73,9 @@ async function confirmaCriacaoToken(instituto, codigo) {
             tokenInfo.expiry_date = token.expiry_date
             await queries.updateTokenInfo(instituto, tokenInfo);
         });
+        let atendente = await queries.getAtendenteInst(instituto);
+        atendente.statusatendente = "CONFIRMED"
+        await queries.updateAtend(instituto, atendente);
     }
     catch (err) {
         console.error(err);
