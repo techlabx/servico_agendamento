@@ -19,7 +19,7 @@ router.get('/eventos/:instituto', async (req, res) => {
     }
 });
 
-router.post('/eventos/:instituto/:idEvento', async (req, res) => {
+router.post('/eventos/:instituto', async (req, res) => {
     try {
         let emailUsuario = req.body.userEmail;
         let ini = req.body.dataHoraIni;
