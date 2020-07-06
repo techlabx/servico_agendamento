@@ -19,7 +19,8 @@ Note que, no passo 3 do tutorial acima, que é a configuração da tela de conse
 |https://www.googleapis.com/auth/calendar|read/write access to Calendars|
 |https://www.googleapis.com/auth/calendar.events|read/write access to Events|
 
-A partir disto, na tela de credenciais do Google API's, basta selecionar a credencial criada e baixar o arquivo JSON com as informações.
+
+A partir daí, na tela de [credenciais do Google API's](ttps://console.developers.google.com/apis/credentials), basta selecionar o ID do cliente OAuth2/0 criado e baixar o arquivo JSON com as informações.
 
 Essas informações JSON devem ser salvas no arquivo "credentials.json" na raiz do repositório.
 
