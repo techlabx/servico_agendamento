@@ -21,17 +21,20 @@ router.get('/eventos/:instituto', async (req, res) => {
 
 router.post('/eventos/:instituto', async (req, res) => {
     try {
+        let nomeUsuario = req.body.userName;
         let emailUsuario = req.body.userEmail;
         let ini = req.body.dataHoraIni;
         let urgente = req.body.flagUrgente;
-        // Inserir chamada pro serviço de email aqui ------
+
+        calendar.sendMailAgend(nomeUsuario, emailUsuario, ini, urgente);
+
         let sucesso = true;
         // ------------------------------------------------
 
         if (sucesso) {
             res.status(200).send("Um email foi enviado para o Apoia/GAPsi solicitando atendimento.");
         }
-        
+
     }
     catch (err) {
         console.log(err.stack);

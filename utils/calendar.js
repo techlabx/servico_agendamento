@@ -1,6 +1,7 @@
 const fs = require('fs');
 const {google} = require('googleapis');
 const queries = require('../db/queries')
+const axios = require('axios');
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CREDENCIAIS = leCredenciais('credentials.json');
@@ -136,10 +137,30 @@ async function atualizaEvento(instituto, evento, emailUsuario) {
     }
 }
 
+async function sendMailAgend(nomeUsuario, emailUsuario, dataHora, flagUrgente) {
+
+  payload = {
+    "usuario": {
+      "nome": nomeUsuario,
+      "email": emailUsuario
+    },
+    "dataHora": dataHora,
+    "flagUrgente": flagUrgente
+  }
+
+  await axios.post('http://servico_email:8080/email/agendamento/enviar', payload)
+    .then(function (response) {
+      console.log(response);
+    }).catch(function (error) {
+      console.log(error);
+    })
+}
+
 module.exports = {
     criaClienteAutenticado,
     solicitaCriacaoToken,
     confirmaCriacaoToken,
     listaEventosDisponiveis,
-    atualizaEvento
+    atualizaEvento,
+    sendMailAgend
 }
