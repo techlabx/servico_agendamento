@@ -3,6 +3,12 @@ const calendar = require('../utils/calendar');
 
 const router = express.Router();
 
+function validCode(code) {
+    const hasCode = typeof code == 'string' && code.trim() != '';
+
+    return hasCode;
+}
+
 router.post('/token/:instituto', async (req, res) => {
     try {
         let authUrl = await calendar.solicitaCriacaoToken(req.params.instituto);
@@ -11,13 +17,16 @@ router.post('/token/:instituto', async (req, res) => {
     catch (err) {
         console.log(err.stack);
         res.status(500).send("Erro");
-    }    
+    }
 });
 
 router.put('/token/:instituto', async (req, res) => {
     try {
-        await calendar.confirmaCriacaoToken(req.params.instituto, req.body.code);
-        res.status(200).send("OK");
+        if(validCode(req.body.code)){
+            await calendar.confirmaCriacaoToken(req.params.instituto, req.body.code);
+            res.status(200).send("OK");
+        }
+        else res.status(500).send("Erro: url vazia.");
     }
     catch (err) {
         console.log(err.stack);
