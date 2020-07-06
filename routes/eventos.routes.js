@@ -24,7 +24,14 @@ router.post('/eventos/:instituto/:idEvento', async (req, res) => {
         let emailUsuario = req.body.userEmail;
         let ini = req.body.dataHoraIni;
         let urgente = req.body.flagUrgente;
-        // Inserir chamada pro serviço de email aqui
+        // Inserir chamada pro serviço de email aqui ------
+        let sucesso = true;
+        // ------------------------------------------------
+
+        if (sucesso) {
+            res.status(200).send("Um email foi enviado para o Apoia/GAPsi solicitando atendimento.");
+        }
+        
     }
     catch (err) {
         console.log(err.stack);
