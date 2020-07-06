@@ -19,6 +19,19 @@ router.get('/eventos/:instituto', async (req, res) => {
     }
 });
 
+router.post('/eventos/:instituto/:idEvento', async (req, res) => {
+    try {
+        let emailUsuario = req.body.userEmail;
+        let ini = req.body.dataHoraIni;
+        let urgente = req.body.flagUrgente;
+        // Inserir chamada pro serviço de email aqui
+    }
+    catch (err) {
+        console.log(err.stack);
+        res.status(500).send("Error");
+    }
+});
+
 router.put('/eventos/:instituto/:idEvento', async (req, res) => {
     try {
         let evento = req.body.evento;
